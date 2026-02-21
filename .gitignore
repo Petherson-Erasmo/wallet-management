@@ -1,0 +1,13 @@
+# Binaries
+wallet-management
+*.exe
+
+# Data
+data/
+
+# Go
+*.test
+*.out
+
+# OS
+.DS_Store
