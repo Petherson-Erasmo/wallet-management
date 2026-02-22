@@ -1,19 +1,19 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
 	csvparser "github.com/Petherson-Erasmo/wallet-management/internal/csvparser"
 	"github.com/Petherson-Erasmo/wallet-management/internal/domain"
-	"github.com/Petherson-Erasmo/wallet-management/internal/repository"
 )
 
 type PortfolioService struct {
-	repo *repository.PortfolioRepository
+	repo PortfolioRepository
 }
 
-func NewPortfolioService(repo *repository.PortfolioRepository) *PortfolioService {
+func NewPortfolioService(repo PortfolioRepository) *PortfolioService {
 	return &PortfolioService{repo: repo}
 }
 
@@ -23,11 +23,15 @@ func (s *PortfolioService) ImportCSV(r io.Reader) ([]domain.PortfolioItem, error
 		return nil, fmt.Errorf("erro ao processar CSV da carteira: %w", err)
 	}
 	if err := s.repo.SaveAll(items); err != nil {
-		return nil, fmt.Errorf("erro ao salvar carteira: %w", err)
+		return nil, fmt.Errorf("erro ao salvar carteira: %w", errors.Join(domain.ErrInternal, err))
 	}
 	return items, nil
 }
 
 func (s *PortfolioService) GetAll() ([]domain.PortfolioItem, error) {
-	return s.repo.FindAll()
+	items, err := s.repo.FindAll()
+	if err != nil {
+		return nil, fmt.Errorf("erro ao buscar carteira: %w", errors.Join(domain.ErrInternal, err))
+	}
+	return items, nil
 }

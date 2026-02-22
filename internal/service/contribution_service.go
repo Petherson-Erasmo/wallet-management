@@ -1,24 +1,24 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strings"
 
 	"github.com/Petherson-Erasmo/wallet-management/internal/domain"
-	"github.com/Petherson-Erasmo/wallet-management/internal/repository"
 )
 
 const maxAllocacaoPorAtivo = 10.0
 
 type ContributionService struct {
-	portfolioRepo      *repository.PortfolioRepository
-	recommendationRepo *repository.RecommendationRepository
+	portfolioRepo      PortfolioRepository
+	recommendationRepo RecommendationRepository
 }
 
 func NewContributionService(
-	portfolioRepo *repository.PortfolioRepository,
-	recommendationRepo *repository.RecommendationRepository,
+	portfolioRepo PortfolioRepository,
+	recommendationRepo RecommendationRepository,
 ) *ContributionService {
 	return &ContributionService{
 		portfolioRepo:      portfolioRepo,
@@ -40,16 +40,16 @@ func (s *ContributionService) Calculate(valor float64) (*domain.ContributionResp
 
 	portfolio, err := s.portfolioRepo.FindAll()
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar carteira: %w", err)
+		return nil, fmt.Errorf("erro ao buscar carteira: %w", errors.Join(domain.ErrInternal, err))
 	}
 
 	recommended, err := s.recommendationRepo.FindAll()
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar carteira recomendada: %w", err)
+		return nil, fmt.Errorf("erro ao buscar carteira recomendada: %w", errors.Join(domain.ErrInternal, err))
 	}
 
 	if len(recommended) == 0 {
-		return nil, fmt.Errorf("carteira recomendada nao encontrada; importe o CSV de recomendacao primeiro")
+		return nil, fmt.Errorf("carteira recomendada nao encontrada; importe o CSV de recomendacao primeiro: %w", domain.ErrPrecondition)
 	}
 
 	// Mapeia carteira atual pelo ticker

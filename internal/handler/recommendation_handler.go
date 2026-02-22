@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/Petherson-Erasmo/wallet-management/internal/domain"
 	"github.com/Petherson-Erasmo/wallet-management/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +27,11 @@ func (h *RecommendationHandler) Import(c *gin.Context) {
 
 	items, err := h.svc.ImportCSV(file)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if errors.Is(err, domain.ErrInternal) {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
 		return
 	}
 

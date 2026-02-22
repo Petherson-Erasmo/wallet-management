@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
+	"github.com/Petherson-Erasmo/wallet-management/internal/domain"
 	"github.com/Petherson-Erasmo/wallet-management/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +33,14 @@ func (h *ContributionHandler) Calculate(c *gin.Context) {
 
 	result, err := h.svc.Calculate(valor)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		switch {
+		case errors.Is(err, domain.ErrPrecondition):
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		case errors.Is(err, domain.ErrInternal):
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
